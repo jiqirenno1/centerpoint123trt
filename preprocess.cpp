@@ -19,9 +19,9 @@ void PreprocessWorker(float* points, float* feature, int* indices, int pointNum,
 
     for(int idx = 0; idx < pointNum; idx++){
         
-        auto x = points[idx*5];
-        auto y = points[idx*5+1];
-        auto z = points[idx*5+2];
+        auto x = points[idx*3];
+        auto y = points[idx*3+1];
+        auto z = points[idx*3+2];
         if(x < X_MIN || x > X_MAX || y < Y_MIN || y > Y_MAX || 
            z < Z_MIN || z > Z_MAX)
            continue;
@@ -51,11 +51,11 @@ void PreprocessWorker(float* points, float* feature, int* indices, int pointNum,
         feature[                                     pillarCountIdx*MAX_PIONT_IN_PILLARS + pointNumInPillar] = x;
         feature[1*MAX_PILLARS*MAX_PIONT_IN_PILLARS + pillarCountIdx*MAX_PIONT_IN_PILLARS + pointNumInPillar] = y;
         feature[2*MAX_PILLARS*MAX_PIONT_IN_PILLARS + pillarCountIdx*MAX_PIONT_IN_PILLARS + pointNumInPillar] = z; // z
-        feature[3*MAX_PILLARS*MAX_PIONT_IN_PILLARS + pillarCountIdx*MAX_PIONT_IN_PILLARS + pointNumInPillar] = points[idx*5+3]; // instence
-        feature[4*MAX_PILLARS*MAX_PIONT_IN_PILLARS + pillarCountIdx*MAX_PIONT_IN_PILLARS + pointNumInPillar] = points[idx*5+4]; // time_lag
+//        feature[3*MAX_PILLARS*MAX_PIONT_IN_PILLARS + pillarCountIdx*MAX_PIONT_IN_PILLARS + pointNumInPillar] = points[idx*5+3]; // instence
+//        feature[4*MAX_PILLARS*MAX_PIONT_IN_PILLARS + pillarCountIdx*MAX_PIONT_IN_PILLARS + pointNumInPillar] = points[idx*5+4]; // time_lag
 
-        feature[8*MAX_PILLARS*MAX_PIONT_IN_PILLARS + pillarCountIdx*MAX_PIONT_IN_PILLARS + pointNumInPillar] = x - (xIdx*X_STEP + X_MIN + X_STEP/2);
-        feature[9*MAX_PILLARS*MAX_PIONT_IN_PILLARS + pillarCountIdx*MAX_PIONT_IN_PILLARS + pointNumInPillar] = y - (yIdx*Y_STEP + Y_MIN + Y_STEP/2);
+        feature[6*MAX_PILLARS*MAX_PIONT_IN_PILLARS + pillarCountIdx*MAX_PIONT_IN_PILLARS + pointNumInPillar] = x - (xIdx*X_STEP + X_MIN + X_STEP/2);
+        feature[7*MAX_PILLARS*MAX_PIONT_IN_PILLARS + pillarCountIdx*MAX_PIONT_IN_PILLARS + pointNumInPillar] = y - (yIdx*Y_STEP + Y_MIN + Y_STEP/2);
 
         ++pointNumInPillar;
         pointCount[pillarCountIdx] = pointNumInPillar;
@@ -87,9 +87,9 @@ void PreprocessWorker(float* points, float* feature, int* indices, int pointNum,
             auto y = feature[1*MAX_PILLARS*MAX_PIONT_IN_PILLARS + pillarIdx*MAX_PIONT_IN_PILLARS + pointIdx];
             auto z = feature[2*MAX_PILLARS*MAX_PIONT_IN_PILLARS + pillarIdx*MAX_PIONT_IN_PILLARS + pointIdx];
        
-            feature[5*MAX_PILLARS*MAX_PIONT_IN_PILLARS + pillarIdx*MAX_PIONT_IN_PILLARS + pointIdx] = x - xCenter;
-            feature[6*MAX_PILLARS*MAX_PIONT_IN_PILLARS + pillarIdx*MAX_PIONT_IN_PILLARS + pointIdx] = y - yCenter;
-            feature[7*MAX_PILLARS*MAX_PIONT_IN_PILLARS + pillarIdx*MAX_PIONT_IN_PILLARS + pointIdx] = z - zCenter;
+            feature[3*MAX_PILLARS*MAX_PIONT_IN_PILLARS + pillarIdx*MAX_PIONT_IN_PILLARS + pointIdx] = x - xCenter;
+            feature[4*MAX_PILLARS*MAX_PIONT_IN_PILLARS + pillarIdx*MAX_PIONT_IN_PILLARS + pointIdx] = y - yCenter;
+            feature[5*MAX_PILLARS*MAX_PIONT_IN_PILLARS + pillarIdx*MAX_PIONT_IN_PILLARS + pointIdx] = z - zCenter;
 
         }
     }

@@ -116,13 +116,20 @@ void AlignedNMSBev(std::vector<Box>& predBoxs){
 }
 void postprocess(const samplesCommon::BufferManager& buffers, std::vector<Box>& predResult){
 
-    std::vector<std::string> regName{   "594", "618", "642", "666", "690", "714"};
-    std::vector<std::string> heightName{"598", "622", "646", "670", "694", "718"};
-    std::vector<std::string> rotName{   "606", "630", "654", "678", "702", "726"};
-    std::vector<std::string> velName{   "610", "634", "658", "682", "706", "730"};
-    std::vector<std::string> dimName{   "736", "740", "744", "748", "752", "756"};
-    std::vector<std::string> scoreName{ "737", "741", "745", "749", "753", "757"};
-    std::vector<std::string> clsName{   "738", "742", "746", "750", "754", "758"};
+//    std::vector<std::string> regName{   "594", "618", "642", "666", "690", "714"};
+//    std::vector<std::string> heightName{"598", "622", "646", "670", "694", "718"};
+//    std::vector<std::string> rotName{   "606", "630", "654", "678", "702", "726"};
+//    std::vector<std::string> velName{   "610", "634", "658", "682", "706", "730"};
+//    std::vector<std::string> dimName{   "736", "740", "744", "748", "752", "756"};
+//    std::vector<std::string> scoreName{ "737", "741", "745", "749", "753", "757"};
+//    std::vector<std::string> clsName{   "738", "742", "746", "750", "754", "758"};
+    std::vector<std::string> regName{   "315"};
+    std::vector<std::string> heightName{"319"};
+    std::vector<std::string> rotName{   "327"};
+//    std::vector<std::string> velName{   "610", "634", "658", "682", "706", "730"};
+    std::vector<std::string> dimName{   "333"};
+    std::vector<std::string> scoreName{ "334"};
+    std::vector<std::string> clsName{   "335"};
     int clsOffsetPerTask[] = {0, 1, 3, 5, 6, 8};
     
     for (size_t taskIdx = 0; taskIdx < TASK_NUM; taskIdx++){
@@ -131,7 +138,7 @@ void postprocess(const samplesCommon::BufferManager& buffers, std::vector<Box>& 
         float* reg = static_cast<float*>(buffers.getHostBuffer(regName[taskIdx]));
         float* height = static_cast<float*>(buffers.getHostBuffer(heightName[taskIdx]));
         float* rot = static_cast<float*>(buffers.getHostBuffer(rotName[taskIdx]));
-        float* vel = static_cast<float*>(buffers.getHostBuffer(velName[taskIdx]));
+//        float* vel = static_cast<float*>(buffers.getHostBuffer(velName[taskIdx]));
         float* dim = static_cast<float*>(buffers.getHostBuffer(dimName[taskIdx]));
         float* score = static_cast<float*>(buffers.getHostBuffer(scoreName[taskIdx]));
         int32_t* cls = static_cast<int32_t*>(buffers.getHostBuffer(clsName[taskIdx]));
@@ -157,8 +164,8 @@ void postprocess(const samplesCommon::BufferManager& buffers, std::vector<Box>& 
                 box.h = dim[1*OUTPUT_H*OUTPUT_W + idx];
                 box.w = dim[2*OUTPUT_H*OUTPUT_W + idx];
                 box.theta = atan2(rot[0*OUTPUT_H*OUTPUT_W + idx], rot[1*OUTPUT_H*OUTPUT_W + idx]);
-                box.velX = vel[0*OUTPUT_H*OUTPUT_W+idx];
-                box.velY = vel[1*OUTPUT_H*OUTPUT_W+idx];
+//                box.velX = vel[0*OUTPUT_H*OUTPUT_W+idx];
+//                box.velY = vel[1*OUTPUT_H*OUTPUT_W+idx];
                 // box.theta = box.theta - PI /2;
 
                 box.score = score[idx];

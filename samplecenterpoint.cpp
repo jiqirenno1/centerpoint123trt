@@ -365,7 +365,7 @@ samplesCommon::OnnxSampleParams initializeSampleParams(const samplesCommon::Args
     if (args.dataDirs.empty()) //!< Use default directories if user hasn't provided directory paths
     {
         //params.dataDirs.push_back("data/centerpoint/");
-        params.dataDirs.push_back("/home/ubuntu/mysoftware/TensorRT-7.2.3.4.Ubuntu-18.04.x86_64-gnu.cuda-11.1.cudnn8.1/TensorRT-7.2.3.4/data/centerpoint/");
+        params.dataDirs.push_back("/home/ubuntu/PycharmProjects/det3/CenterPoint/onnx_model/");
     }
     else //!< Use the data directory provided by the user
     {
