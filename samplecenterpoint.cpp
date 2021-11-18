@@ -90,6 +90,7 @@ public:
     //! \brief Function builds the network engine
     //!
     bool build();
+    void loadEngine(std::string engine);
 
     //!
     //! \brief Runs the TensorRT inference engine for this sample
@@ -174,6 +175,24 @@ bool SampleCenterPoint::build()
     {
         return false;
     }
+
+    std::string fileName = "./centerpoint.engine";
+    std::ofstream engineFile(fileName, std::ios::binary);
+    if (!engineFile)
+    {
+        std::cout << "Cannot open engine file: " << fileName << std::endl;
+        return false;
+    }
+
+    SampleUniquePtr<IHostMemory> serializedEngine{mEngine->serialize()};
+    if (serializedEngine == nullptr)
+    {
+        std::cout<< "Engine serialization failed" << std::endl;
+        return false;
+    }
+
+    engineFile.write(static_cast<char*>(serializedEngine->data()), serializedEngine->size());
+    std::cout<< "Engine write: " <<engineFile.fail()<< serializedEngine->size()<<  std::endl;
 
     auto endTime = std::chrono::high_resolution_clock::now();
     double buildDuration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime).count()/1000000.0;
@@ -302,7 +321,7 @@ bool SampleCenterPoint::infer()
         sample::gLogInfo << "inferenceDuration Time: " << inferenceDuration << " ms"<< std::endl;
         sample::gLogInfo << "PostProcessDuration Time: " << PostProcessDuration << " ms"<< std::endl;
 
-//        saveOutput(predResult, filePath[idx]);
+        saveOutput(predResult, filePath[idx]);
 
         free(points);  
     }
@@ -317,7 +336,8 @@ void SampleCenterPoint::saveOutput(std::vector<Box>& predResult, std::string& in
 {
     
     std::string::size_type pos = inputFileName.find_last_of("/");
-    std::string outputFilePath("../"+mParams.dataDirs[0]+"/results/"+ inputFileName.substr(pos) + ".txt");
+//    std::string outputFilePath("../"+mParams.dataDirs[0]+"/results/"+ inputFileName.substr(pos) + ".txt");
+    std::string outputFilePath("/home/ubuntu/mysoftware/TensorRT-7.2.3.4.Ubuntu-18.04.x86_64-gnu.cuda-11.1.cudnn8.1/TensorRT-7.2.3.4/data/centerpoint/results/"+ inputFileName.substr(pos) + ".txt");
 
     ofstream resultFile;
 
@@ -325,11 +345,16 @@ void SampleCenterPoint::saveOutput(std::vector<Box>& predResult, std::string& in
     try {
 
         resultFile.open(outputFilePath);
+//        for (size_t idx = 0; idx < predResult.size(); idx++){
+//                resultFile << predResult[idx].x << " " << predResult[idx].y << " " << predResult[idx].z << " "<< \
+//                predResult[idx].l << " " << predResult[idx].h << " " << predResult[idx].w << " " << predResult[idx].velX \
+//                << " " << predResult[idx].velY << " " << predResult[idx].theta << " " << predResult[idx].score << \
+//                " "<< predResult[idx].cls << std::endl;
+//        }
         for (size_t idx = 0; idx < predResult.size(); idx++){
-                resultFile << predResult[idx].x << " " << predResult[idx].y << " " << predResult[idx].z << " "<< \
-                predResult[idx].l << " " << predResult[idx].h << " " << predResult[idx].w << " " << predResult[idx].velX \
-                << " " << predResult[idx].velY << " " << predResult[idx].theta << " " << predResult[idx].score << \ 
-                " "<< predResult[idx].cls << std::endl;
+            resultFile << predResult[idx].x << " " << predResult[idx].y << " " << predResult[idx].z << " |>>xyz|"<< \
+                predResult[idx].l << " " << predResult[idx].h << " " << predResult[idx].w << "|>>lhw| "<< predResult[idx].theta << " |>>theta|" << predResult[idx].score << \
+                "|>>sorce|cls<<| "<< predResult[idx].cls << std::endl;
         }
         resultFile.close();
     }
@@ -353,6 +378,35 @@ bool SampleCenterPoint::processInput(void*& inputPointBuf, std::string& pointFil
 
     }
     return ret;
+}
+
+void SampleCenterPoint::loadEngine(std::string engine) {
+    std::ifstream engineFile(engine, std::ios::binary);
+    if (!engineFile)
+    {
+        std::cout << "Error opening engine file: " << engine << std::endl;
+    }
+
+    engineFile.seekg(0, engineFile.end);
+    long int fsize = engineFile.tellg();
+    engineFile.seekg(0, engineFile.beg);
+
+    std::vector<char> engineData(fsize);
+    engineFile.read(engineData.data(), fsize);
+    if (!engineFile)
+    {
+        std::cout << "Error loading engine file: " << engine << std::endl;
+    }
+
+    SampleUniquePtr<nvinfer1::IRuntime> runtime{createInferRuntime(sample::gLogger.getTRTLogger())};
+//    if (DLACore != -1)
+//    {
+//        runtime->setDLACore(DLACore);
+//    }
+    std::cout << "deserialize  engine file size : " << fsize << std::endl;
+//    nvinfer1::ICudaEngine* mE = runtime->deserializeCudaEngine(engineData.data(), fsize);
+//    mEngine.reset(mE);
+
 }
 
 
@@ -424,6 +478,7 @@ int main(int argc, char** argv)
     {
         return sample::gLogger.reportFail(sampleTest);
     }
+//    sample.loadEngine("./centerpoint.engine");
     if (!sample.infer())
     {
         return sample::gLogger.reportFail(sampleTest);
