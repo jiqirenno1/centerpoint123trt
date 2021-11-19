@@ -6,7 +6,7 @@
 #include <vector>
 #include "logger.h"
 
-void PreprocessWorker(float* points, float* feature, int* indices, int pointNum, int threadIdx, int pillarsPerThread){
+void PreprocessWorker(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, float* feature, int* indices, int pointNum, int threadIdx, int pillarsPerThread){
     // 0 ~ MAX_PIONT_IN_PILLARS
     unsigned short pointCount[MAX_PILLARS] = {0};
 
@@ -19,9 +19,9 @@ void PreprocessWorker(float* points, float* feature, int* indices, int pointNum,
 
     for(int idx = 0; idx < pointNum; idx++){
         
-        auto x = points[idx*3];
-        auto y = points[idx*3+1];
-        auto z = points[idx*3+2];
+        auto x = cloud->points[idx].x;
+        auto y = cloud->points[idx].y;
+        auto z = cloud->points[idx].z;
         if(x < X_MIN || x > X_MAX || y < Y_MIN || y > Y_MAX || 
            z < Z_MIN || z > Z_MAX)
            continue;
@@ -96,7 +96,7 @@ void PreprocessWorker(float* points, float* feature, int* indices, int pointNum,
     
 }
 
-void preprocess(float* points, float* feature, int* indices, int pointNum)
+void preprocess(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, float* feature, int* indices, int pointNum)
 {
     for(int idx=0; idx< MAX_PILLARS*2; idx++){
         indices[idx] = -1;
@@ -108,7 +108,7 @@ void preprocess(float* points, float* feature, int* indices, int pointNum)
     std::vector<std::thread> threadPool;
     for(int idx=0; idx < THREAD_NUM; idx++){
         std::thread worker(PreprocessWorker,
-                                             points,
+                                             cloud,
                                              feature,
                                              indices,
                                              pointNum,
@@ -156,5 +156,4 @@ bool readBinFile(std::string& filename, void*& bufPtr, int& pointNum)
     sample::gLogInfo << "[INFO] pointNum : " << pointNum << std::endl;
     return true;
 }
-
 

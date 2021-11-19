@@ -20,10 +20,13 @@ link_directories(/home/ubuntu/mysoftware/TensorRT-7.2.3.4.Ubuntu-18.04.x86_64-gn
 #cuda_add_library(ScatterNDPlugin SHARED ${PROJECT_SOURCE_DIR}/ScatterNDPlugin.cu)
 #target_link_libraries(ScatterNDPlugin nvinfer cudart)
 
+find_package(PCL REQUIRED)
+include_directories(${PCL_INCLUDE_DIRS})
+add_definitions(${PCL_DEFINITIONS})
 
 file(GLOB srs common/*.cpp)
 message(${srs})
 
 
 cuda_add_executable(centerpointTrt samplecenterpoint.cpp preprocess.cpp postprocess.cpp ScatterNDPlugin.cu ${srs})
-target_link_libraries(centerpointTrt nvinfer cudart nvonnxparser -lpthread)
+target_link_libraries(centerpointTrt nvinfer cudart nvonnxparser -lpthread ${PCL_LIBRARIES})

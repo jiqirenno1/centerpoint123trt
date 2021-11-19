@@ -161,8 +161,8 @@ void postprocess(const samplesCommon::BufferManager& buffers, std::vector<Box>& 
                 box.y = y;
                 box.z = z;
                 box.l = dim[0*OUTPUT_H*OUTPUT_W + idx];
-                box.h = dim[1*OUTPUT_H*OUTPUT_W + idx];
-                box.w = dim[2*OUTPUT_H*OUTPUT_W + idx];
+                box.w = dim[1*OUTPUT_H*OUTPUT_W + idx]; //change with w
+                box.h = dim[2*OUTPUT_H*OUTPUT_W + idx];
                 box.theta = atan2(rot[0*OUTPUT_H*OUTPUT_W + idx], rot[1*OUTPUT_H*OUTPUT_W + idx]);
 //                box.velX = vel[0*OUTPUT_H*OUTPUT_W+idx];
 //                box.velY = vel[1*OUTPUT_H*OUTPUT_W+idx];

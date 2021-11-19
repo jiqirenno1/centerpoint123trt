@@ -1,28 +1,3 @@
-/*
- * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-//!
-//! sampleOnnxMNIST.cpp
-//! This file contains the implementation of the ONNX MNIST sample. It creates the network using
-//! the MNIST onnx model.
-//! It can be run with the following command line:
-//! Command: ./sample_onnx_mnist [-h or --help] [-d=/path/to/data/dir or --datadir=/path/to/data/dir]
-//! [--useDLACore=<int>]
-//!
-
 #include "argsParser.h"
 #include "buffers.h"
 #include "common.h"
@@ -90,7 +65,7 @@ public:
     //! \brief Function builds the network engine
     //!
     bool build();
-    void loadEngine(std::string engine);
+    bool loadEngine(std::string engine);
 
     //!
     //! \brief Runs the TensorRT inference engine for this sample
@@ -113,16 +88,12 @@ private:
         SampleUniquePtr<nvinfer1::INetworkDefinition>& network, SampleUniquePtr<nvinfer1::IBuilderConfig>& config,
         SampleUniquePtr<nvonnxparser::IParser>& parser);
 
-    //!
-    //! \brief Reads the input  and stores the result in a managed buffer
-    //!
-    bool processInput(void*& points, std::string& pointFilePath, int& pointNum);
 
     //!
     //! \brief Classifies digits and verify result
     //!
     void saveOutput(std::vector<Box>& predResult, std::string& inputFileName);
-    bool testFun(const samplesCommon::BufferManager& buffers);
+
 };
 
 //!
@@ -171,6 +142,7 @@ bool SampleCenterPoint::build()
 
     mEngine = std::shared_ptr<nvinfer1::ICudaEngine>(
         builder->buildEngineWithConfig(*network, *config), samplesCommon::InferDeleter());
+
     if (!mEngine)
     {
         return false;
@@ -242,16 +214,6 @@ bool SampleCenterPoint::constructNetwork(SampleUniquePtr<nvinfer1::IBuilder>& bu
 
     return true;
 }
-bool SampleCenterPoint::testFun(const samplesCommon::BufferManager& buffers){
-    
-    size_t num = 38;
-    for (size_t idx = 0; idx < num; idx++){
-        sample::gLogInfo << "idx:" << idx << std::endl;
-        sample::gLogInfo << "num:" << num << std::endl;
-        sample::gLogInfo << "compare :" << (num>idx) << std::endl;
-    }
-
-}
 //!
 //! \brief Runs the TensorRT inference engine for this sample
 //!
@@ -274,24 +236,24 @@ bool SampleCenterPoint::infer()
     
     void* inputPointBuf = nullptr;
 
-    //std::vector<std::string> filePath = glob("../"+mParams.dataDirs[0]+"/points/*.bin");
-    //std::vector<std::string> filePath = glob("/home/ubuntu/mysoftware/TensorRT-7.2.3.4.Ubuntu-18.04.x86_64-gnu.cuda-11.1.cudnn8.1/TensorRT-7.2.3.4/data/centerpoint/points/0a0d6b8c2e884134a3b48df43d54c36a.bin");
-    std::vector<std::string> filePath = glob("/home/ubuntu/1450.bin");
+    std::vector<std::string> filePath = glob("../onnx_model/data/*.pcd");
 
     for(auto idx = 0; idx < filePath.size(); idx++){
         std::cout << "filePath[idx]: " << filePath[idx] << std::endl;
         int pointNum = 0;
-        if (!processInput(inputPointBuf, filePath[idx], pointNum))
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+        if(pcl::io::loadPCDFile(filePath[idx], *cloud))
         {
+            std::cout<<"error when loading: "<<filePath[idx]<<std::endl;
             return false;
         }
-        
-        float* points = static_cast<float*>(inputPointBuf);
+        pointNum = cloud->size();
+
     
         std::vector<Box> predResult;
 
         auto startTime = std::chrono::high_resolution_clock::now();
-        preprocess(points, hostPillars, hostIndex, pointNum);
+        preprocess(cloud, hostPillars, hostIndex, pointNum);
         auto endTime = std::chrono::high_resolution_clock::now();
         double preprocessDuration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime).count()/1000000.0;
         
@@ -323,7 +285,6 @@ bool SampleCenterPoint::infer()
 
         saveOutput(predResult, filePath[idx]);
 
-        free(points);  
     }
     
     return true;
@@ -337,7 +298,7 @@ void SampleCenterPoint::saveOutput(std::vector<Box>& predResult, std::string& in
     
     std::string::size_type pos = inputFileName.find_last_of("/");
 //    std::string outputFilePath("../"+mParams.dataDirs[0]+"/results/"+ inputFileName.substr(pos) + ".txt");
-    std::string outputFilePath("/home/ubuntu/mysoftware/TensorRT-7.2.3.4.Ubuntu-18.04.x86_64-gnu.cuda-11.1.cudnn8.1/TensorRT-7.2.3.4/data/centerpoint/results/"+ inputFileName.substr(pos) + ".txt");
+    std::string outputFilePath("../onnx_model/result/"+ inputFileName.substr(pos) + ".txt");
 
     ofstream resultFile;
 
@@ -364,27 +325,13 @@ void SampleCenterPoint::saveOutput(std::vector<Box>& predResult, std::string& in
 }
 
 
-//!
-//! \brief Reads the input and stores the result in a managed buffer
-//!
-bool SampleCenterPoint::processInput(void*& inputPointBuf, std::string& pointFilePath, int& pointNum)
-{
-
-    bool ret = readBinFile(pointFilePath, inputPointBuf, pointNum);
-    if(!ret){
-        sample::gLogError << "Error read point file: " << pointFilePath<< std::endl;
-        free(inputPointBuf);
-        return ret;
-
-    }
-    return ret;
-}
-
-void SampleCenterPoint::loadEngine(std::string engine) {
+bool SampleCenterPoint::loadEngine(std::string engine) {
+    auto startTime = std::chrono::high_resolution_clock::now();
     std::ifstream engineFile(engine, std::ios::binary);
     if (!engineFile)
     {
         std::cout << "Error opening engine file: " << engine << std::endl;
+        return false;
     }
 
     engineFile.seekg(0, engineFile.end);
@@ -396,17 +343,20 @@ void SampleCenterPoint::loadEngine(std::string engine) {
     if (!engineFile)
     {
         std::cout << "Error loading engine file: " << engine << std::endl;
+        return false;
     }
 
     SampleUniquePtr<nvinfer1::IRuntime> runtime{createInferRuntime(sample::gLogger.getTRTLogger())};
-//    if (DLACore != -1)
-//    {
-//        runtime->setDLACore(DLACore);
-//    }
-    std::cout << "deserialize  engine file size : " << fsize << std::endl;
-//    nvinfer1::ICudaEngine* mE = runtime->deserializeCudaEngine(engineData.data(), fsize);
-//    mEngine.reset(mE);
 
+    std::cout << "deserialize  engine file size : " << fsize << std::endl;
+    mEngine = std::shared_ptr<nvinfer1::ICudaEngine>(
+            runtime->deserializeCudaEngine(engineData.data(), fsize, nullptr), samplesCommon::InferDeleter());
+
+    auto endTime = std::chrono::high_resolution_clock::now();
+    double loadEngineDuration = std::chrono::duration_cast<std::chrono::nanoseconds>(endTime - startTime).count()/1000000.0;
+
+    sample::gLogInfo << "loading  Time: " << loadEngineDuration << " ms"<< std::endl;
+    return true;
 }
 
 
@@ -418,8 +368,7 @@ samplesCommon::OnnxSampleParams initializeSampleParams(const samplesCommon::Args
     samplesCommon::OnnxSampleParams params;
     if (args.dataDirs.empty()) //!< Use default directories if user hasn't provided directory paths
     {
-        //params.dataDirs.push_back("data/centerpoint/");
-        params.dataDirs.push_back("/home/ubuntu/PycharmProjects/det3/CenterPoint/onnx_model/");
+        params.dataDirs.push_back("../onnx_model/");
     }
     else //!< Use the data directory provided by the user
     {
@@ -474,15 +423,18 @@ int main(int argc, char** argv)
 
     sample::gLogInfo << "Building and running a GPU inference engine for CenterPoint" << std::endl;
 
-    if (!sample.build())
+//    if (sample.build())
+//    {
+//        std::cout<<"build success!"<<std::endl;
+//    }
+    if(sample.loadEngine("./centerpoint.engine"))
     {
-        return sample::gLogger.reportFail(sampleTest);
+        std::cout<<"loadEngine success!"<<std::endl;
     }
-//    sample.loadEngine("./centerpoint.engine");
-    if (!sample.infer())
+    if (sample.infer())
     {
-        return sample::gLogger.reportFail(sampleTest);
+        std::cout<<"infer success!"<<std::endl;
     }
 
-    return sample::gLogger.reportPass(sampleTest);
+    return 0;
 }

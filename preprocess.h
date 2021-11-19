@@ -3,8 +3,10 @@
 #include <iostream>
 #include <fstream>
 #include "config.h"
+#include <pcl/io/pcd_io.h>
+#include <pcl/visualization/pcl_visualizer.h>
 
-void preprocess(float* points, float* feature, int* indices, int pointNum);
+void preprocess(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, float* feature, int* indices, int pointNum);
 
 bool readBinFile(std::string& filename, void*& bufPtr, int& pointNum);
 
