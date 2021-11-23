@@ -24,9 +24,11 @@ find_package(PCL REQUIRED)
 include_directories(${PCL_INCLUDE_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
+find_package(OpenCV REQUIRED)
+
 file(GLOB srs common/*.cpp)
 message(${srs})
 
 
 cuda_add_executable(centerpointTrt samplecenterpoint.cpp preprocess.cpp postprocess.cpp ScatterNDPlugin.cu ${srs})
-target_link_libraries(centerpointTrt nvinfer cudart nvonnxparser -lpthread ${PCL_LIBRARIES})
+target_link_libraries(centerpointTrt nvinfer cudart nvonnxparser -lpthread ${PCL_LIBRARIES} ${OpenCV_LIBS})
