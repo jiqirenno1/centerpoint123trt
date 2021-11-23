@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.10)
 project(centerpointTrt)
 
 set(CMAKE_CXX_STANDARD 14)
@@ -26,9 +26,15 @@ add_definitions(${PCL_DEFINITIONS})
 
 find_package(OpenCV REQUIRED)
 
-file(GLOB srs common/*.cpp)
-message(${srs})
+file(GLOB coms common/*.cpp)
+include_directories(${PROJECT_SOURCE_DIR}/include)
+file(GLOB src src/*.cpp)
 
+cuda_add_library(centerpoint  SHARED ${src} src/ScatterNDPlugin.cu ${coms})
+target_link_libraries(centerpoint nvinfer cudart nvonnxparser -lpthread ${PCL_LIBRARIES} ${OpenCV_LIBS})
 
-cuda_add_executable(centerpointTrt samplecenterpoint.cpp preprocess.cpp postprocess.cpp ScatterNDPlugin.cu ${srs})
-target_link_libraries(centerpointTrt nvinfer cudart nvonnxparser -lpthread ${PCL_LIBRARIES} ${OpenCV_LIBS})
+cuda_add_executable(cptest test_fusion.cpp)
+target_link_libraries(cptest centerpoint)
+
+cuda_add_executable(vis test_vis.cpp)
+target_link_libraries(vis centerpoint)
