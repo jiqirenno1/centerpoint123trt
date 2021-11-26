@@ -28,7 +28,8 @@ find_package(OpenCV REQUIRED)
 
 file(GLOB coms common/*.cpp)
 include_directories(${PROJECT_SOURCE_DIR}/include)
-file(GLOB src src/*.cpp)
+file(GLOB_RECURSE src src/*.cpp)
+message("print:"${src})
 
 cuda_add_library(centerpoint  SHARED ${src} src/ScatterNDPlugin.cu ${coms})
 target_link_libraries(centerpoint nvinfer cudart nvonnxparser -lpthread ${PCL_LIBRARIES} ${OpenCV_LIBS})
@@ -38,3 +39,6 @@ target_link_libraries(cptest centerpoint)
 
 cuda_add_executable(vis test_vis.cpp)
 target_link_libraries(vis centerpoint)
+
+cuda_add_executable(track test_tracking.cpp)
+target_link_libraries(track centerpoint)
