@@ -14,13 +14,15 @@ public:
     void update(Eigen::Vector3d &det);
     Eigen::Vector3d getState();
     int getID();
-    int getSpeed();
+    float getSpeed();
+    float smoothSpeed();
 
 public:
     int hits_=0;
     int time_since_update_=0;
 private:
     KalmanFilter KF_;
+    float meanSpeed=0;
     double t_=0;
     float posZ_=0;
     float detZ_ = 0;

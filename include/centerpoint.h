@@ -21,7 +21,7 @@ public:
     CenterPoint();
     bool buildFromOnnx(const std::string& onnx_file, const std::string& engine_file, bool save);
     bool loadFromEngine(const std::string& engine_file);
-    std::vector<Box> singleInference(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+    std::vector<Box> singleInference(const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud);
 private:
     samplesCommon::OnnxSampleParams mParams;
     std::shared_ptr<nvinfer1::ICudaEngine> mEngine;

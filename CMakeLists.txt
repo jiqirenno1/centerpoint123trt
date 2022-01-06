@@ -14,11 +14,11 @@ link_directories(/usr/local/cuda/lib64)
 include_directories(/home/ubuntu/mysoftware/TensorRT-7.2.3.4.Ubuntu-18.04.x86_64-gnu.cuda-11.1.cudnn8.1/TensorRT-7.2.3.4/include)
 link_directories(/home/ubuntu/mysoftware/TensorRT-7.2.3.4.Ubuntu-18.04.x86_64-gnu.cuda-11.1.cudnn8.1/TensorRT-7.2.3.4/lib)
 
-#include_directories(/home/ubuntu/mysoftware/TensorRT-8.0.1.6/include)
-#link_directories(/home/ubuntu/mysoftware/TensorRT-8.0.1.6/lib)
+
 #include_directories(${PROJECT_SOURCE_DIR}/ScatterNDPlugin.h)
 #cuda_add_library(ScatterNDPlugin SHARED ${PROJECT_SOURCE_DIR}/ScatterNDPlugin.cu)
-#target_link_libraries(ScatterNDPlugin nvinfer cudart)
+#target_link_libraries(ScatterNDPlugin nvinfer cudart)#include_directories(/home/ubuntu/mysoftware/TensorRT-8.0.1.6/include)
+##link_directories(/home/ubuntu/mysoftware/TensorRT-8.0.1.6/lib)
 
 find_package(PCL REQUIRED)
 include_directories(${PCL_INCLUDE_DIRS})
@@ -42,3 +42,17 @@ target_link_libraries(vis centerpoint)
 
 cuda_add_executable(track test_tracking.cpp)
 target_link_libraries(track centerpoint)
+
+#add yolov5 plugin
+cuda_add_library(myplugins SHARED yolov5/yololayer.cu)
+target_link_libraries(myplugins nvinfer cudart)
+
+add_executable(yolov5  yolov5.cpp yolov5/YoloV5Detect.cpp)
+target_link_libraries(yolov5 nvinfer)
+target_link_libraries(yolov5 cudart)
+target_link_libraries(yolov5 myplugins)
+target_link_libraries(yolov5 ${OpenCV_LIBS})
+target_link_libraries(yolov5 ${PCL_LIBRARIES})
+
+cuda_add_executable(det_cam_lidar det_cam_lidar.cpp yolov5/YoloV5Detect.cpp)
+target_link_libraries(det_cam_lidar centerpoint myplugins)

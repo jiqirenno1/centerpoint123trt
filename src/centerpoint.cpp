@@ -149,10 +149,12 @@ bool CenterPoint::constructNetwork(CenterPoint::SampleUniquePtr<IBuilder> &build
     return true;
 }
 
-std::vector<Box> CenterPoint::singleInference(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud) {
+std::vector<Box> CenterPoint::singleInference(const pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud) {
     samplesCommon::BufferManager buffers(mEngine);
 
     auto context = SampleUniquePtr<nvinfer1::IExecutionContext>(mEngine->createExecutionContext());
+
+
     if (!context)
     {
         std::cout << "inference context error!!" << std::endl;
@@ -160,6 +162,7 @@ std::vector<Box> CenterPoint::singleInference(pcl::PointCloud<pcl::PointXYZ>::Pt
 
     float* hostPillars = static_cast<float*>(buffers.getHostBuffer(mParams.inputTensorNames[0]));
     int32_t* hostIndex = static_cast<int32_t*>(buffers.getHostBuffer(mParams.inputTensorNames[1]));
+
 
     int pointNum = cloud->size();
     std::vector<Box> predResult;

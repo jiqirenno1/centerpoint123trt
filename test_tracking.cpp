@@ -5,11 +5,9 @@
 #include "centerpoint.h"
 #include "tracking/Mot3D.h"
 
-void singleDetect(string path, pcl::visualization::PCLVisualizer::Ptr &viewer, Mot3D& track3D)
+void singleDetect(string path, pcl::visualization::PCLVisualizer::Ptr &viewer, Mot3D& track3D, std::shared_ptr<CenterPoint> &cp_ptr)
 {
     std::vector<Eigen::Vector3d> dets;
-    std::shared_ptr<CenterPoint> cp_ptr = std::make_shared<CenterPoint>();
-    cp_ptr->loadFromEngine("../onnx_model/cp.engine");
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
     if (pcl::io::loadPCDFile(path, *cloud)) {
@@ -63,6 +61,8 @@ int main()
     auto streamIterator = paths.begin();
 
     Mot3D track3D;
+    std::shared_ptr<CenterPoint> cp_ptr = std::make_shared<CenterPoint>();
+    cp_ptr->loadFromEngine("../onnx_model/cp.engine");
 
     while(!viewer->wasStopped())
     {
@@ -70,11 +70,11 @@ int main()
         viewer->removeAllPointClouds();
         viewer->removeAllShapes();
         // Load pcd and run obstacle detection process
-        singleDetect(streamIterator->string(), viewer, track3D);
+        singleDetect(streamIterator->string(), viewer, track3D, cp_ptr);
         streamIterator++;
         if (streamIterator == paths.end()) {
             streamIterator = paths.begin();
         }
-        viewer->spinOnce(30);
+        viewer->spinOnce();
     }
 }

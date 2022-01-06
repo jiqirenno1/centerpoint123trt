@@ -55,7 +55,7 @@ std::vector<std::pair<int, float>> Mot3D::update(std::vector<Eigen::Vector3d> &d
         if(assignment[i]!=-1)
         {
             std::cout<<"*******output: "<<dis_mat[i][assignment[i]]<<std::endl;
-            if(dis_mat[i][assignment[i]]>4)
+            if(dis_mat[i][assignment[i]]>6)
             {
                 assignment[i] = -1;
             }
@@ -81,6 +81,7 @@ std::vector<std::pair<int, float>> Mot3D::update(std::vector<Eigen::Vector3d> &d
         else//matched update and getID if hit many times
         {
             tracks_[trki].update(dets[i]);
+//            float speed = tracks_[trki].smoothSpeed();
             if(tracks_[trki].hits_>nums_hit_ || frame_<=nums_hit_)
             {
                 match_det_id[i] = std::pair<int, float>(tracks_[trki].getID(), tracks_[trki].getSpeed());

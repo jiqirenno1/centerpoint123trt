@@ -24,8 +24,11 @@ TrackLet::TrackLet(Eigen::Vector3d &det, double time) {
     KF_.SetU(u);
     KF_.SetB(Eigen::MatrixXd::Identity(6,6));
 
-    KF_.SetP(Eigen::MatrixXd::Identity(6,6));
-    Eigen::MatrixXd Q = Eigen::MatrixXd::Zero(6,6);
+    Eigen::MatrixXd P = Eigen::MatrixXd::Identity(6,6);
+    Eigen::MatrixXd block_P = Eigen::MatrixXd::Identity(3,3) * 1000 ;
+    P.block<3,3>(3,3) = block_P;
+    KF_.SetP(P);
+    Eigen::MatrixXd Q = Eigen::MatrixXd::Identity(6,6);
     Eigen::MatrixXd block_Q = Eigen::MatrixXd::Identity(3,3) * 0.01 ;
     Q.block<3,3>(3,3) = block_Q;
     KF_.SetQ(Q);
@@ -33,7 +36,7 @@ TrackLet::TrackLet(Eigen::Vector3d &det, double time) {
     Eigen::MatrixXd H = Eigen::MatrixXd::Zero(3, 6);
     H.block<3, 3>(0, 0) = Eigen::MatrixXd::Identity(3, 3);
     KF_.SetH(H);
-    KF_.SetR(Eigen::MatrixXd::Zero(3, 3));
+    KF_.SetR(Eigen::MatrixXd::Identity(3, 3));
 
 }
 
@@ -75,7 +78,19 @@ int TrackLet::getID() {
     return id_;
 }
 
-int TrackLet::getSpeed() {
-    return int(KF_.GetX()[3]);
+float TrackLet::getSpeed() {
+//    return int(KF_.GetX()[3]);
+    std::cout<<"speed : "<<std::sqrt(std::pow(KF_.GetX()[3], 2) + std::pow(KF_.GetX()[4], 2) + std::pow(KF_.GetX()[5], 2))<<std::endl;
+    std::cout<<"time_since_update_: "<<time_since_update_<<std::endl;
+    std::cout<<"hits_ : "<<hits_<<std::endl;
+    return std::sqrt(std::pow(KF_.GetX()[3], 2) + std::pow(KF_.GetX()[4], 2) + std::pow(KF_.GetX()[5], 2));
+}
+
+float TrackLet::smoothSpeed() {
+    if(meanSpeed==0)
+        meanSpeed = getSpeed();
+    else
+        meanSpeed = meanSpeed*0.8 + getSpeed()*0.2;
+    return meanSpeed;
 }
 
